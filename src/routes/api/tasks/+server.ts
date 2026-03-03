@@ -12,7 +12,7 @@ async function gatewayInvoke(tool: string, args: Record<string, unknown>) {
     method: 'POST',
     headers: { 'Authorization': `Bearer ${TOKEN()}`, 'Content-Type': 'application/json' },
     body: JSON.stringify({ tool, args }),
-    signal: AbortSignal.timeout(10000)
+    signal: AbortSignal.timeout(12000)
   });
   return res.json();
 }
@@ -27,29 +27,34 @@ export async function POST({ request }) {
 
   const id = randomUUID();
   const outputPath = `${OUTPUT_DIR()}/${id}.md`;
+  tasksDb.create({ id, title, status: 'pending' });
 
-  const task = tasksDb.create({ id, title, status: 'pending' });
-
-  // Spawn sub-agent
-  const agentTask = `You are Tegid, a personal AI assistant. Complete the following task and write your full output as markdown to the file: ${outputPath}
-
-After writing the file, respond with: TASK_COMPLETE
-
-Task:
-${title}`;
+  const agentTask = `Complete this task and save your final output as markdown to this file: ${outputPath}\n\nTask:\n${title}`;
 
   try {
     const result = await gatewayInvoke('sessions_spawn', {
       task: agentTask,
       mode: 'run',
-      label: title.slice(0, 50)
+      runtime: 'subagent',
+      label: title.slice(0, 64)
     });
 
-    const sessionKey = result?.result?.details?.sessionKey ?? result?.result?.details?.id;
-    tasksDb.update(id, { status: 'running', output_path: outputPath, session_key: sessionKey });
+    if (!result?.ok) {
+      tasksDb.update(id, { status: 'failed', output: result?.error?.message ?? 'dispatch failed' });
+      return json({ ok: false, task: tasksDb.get(id) }, { status: 500 });
+    }
+
+    const details = result?.result?.details ?? {};
+    tasksDb.update(id, {
+      status: 'running',
+      output_path: outputPath,
+      session_key: details.childSessionKey ?? null,
+      run_id: details.runId ?? null
+    });
+
+    return json({ ok: true, task: tasksDb.get(id) });
   } catch (e) {
     tasksDb.update(id, { status: 'failed', output: String(e) });
+    return json({ ok: false, task: tasksDb.get(id) }, { status: 500 });
   }
-
-  return json({ ok: true, task: tasksDb.get(id) });
 }

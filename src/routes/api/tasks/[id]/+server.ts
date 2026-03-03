@@ -36,6 +36,19 @@ export async function GET({ params }) {
     return json({ task });
   }
 
+
+  // Timeout guard for stuck runs
+  if (task.status === 'running' && task.run_id) {
+    const maxMs = 2 * 60 * 1000;
+    if (Date.now() - task.created_at > maxMs) {
+      try {
+        await gatewayInvoke('subagents', { action: 'kill', target: task.run_id });
+      } catch {}
+      task = tasksDb.update(task.id, { status: 'failed', output: 'Timed out after 2 minutes' });
+      return json({ task });
+    }
+  }
+
   // Subagent status check
   if (task.status === 'running' && task.run_id) {
     try {

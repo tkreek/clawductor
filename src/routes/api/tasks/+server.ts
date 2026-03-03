@@ -29,14 +29,15 @@ export async function POST({ request }) {
   const outputPath = `${OUTPUT_DIR()}/${id}.md`;
   tasksDb.create({ id, title, status: 'pending' });
 
-  const agentTask = `Complete this task and save your final output as markdown to this file: ${outputPath}\n\nTask:\n${title}`;
+  const agentTask = `You are executing a background task for Clawductor.\nProduce the result only as markdown and save it to this file: ${outputPath}\n\nIMPORTANT: Do NOT send Telegram/messages, do NOT ask follow-up questions, do NOT perform external side effects.\nIf task asks for messaging, include the message content in the markdown output instead.\n\nTask:\n${title}`;
 
   try {
     const result = await gatewayInvoke('sessions_spawn', {
       task: agentTask,
       mode: 'run',
       runtime: 'subagent',
-      label: title.slice(0, 64)
+      label: title.slice(0, 64),
+      runTimeoutSeconds: 120
     });
 
     if (!result?.ok) {

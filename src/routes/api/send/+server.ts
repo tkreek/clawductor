@@ -16,14 +16,19 @@ export async function POST({ request }) {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        tool: 'sessions_send',
-        args: { sessionKey: 'agent:main:main', message }
+        tool: 'message',
+        args: {
+          action: 'send',
+          channel: 'telegram',
+          target: 'telegram:5787457491',
+          message
+        }
       }),
       signal: AbortSignal.timeout(10000)
     });
 
     const data = await res.json();
-    return json({ ok: data.ok === true });
+    return json({ ok: data?.result?.details?.ok === true });
   } catch (e) {
     return json({ ok: false, error: String(e) });
   }

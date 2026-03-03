@@ -1,22 +1,34 @@
 import { json } from '@sveltejs/kit';
-
-const GATEWAY_URL = 'http://127.0.0.1:18789';
+import { env } from '$env/dynamic/private';
 
 export async function GET() {
+  const GATEWAY_URL = env.GATEWAY_URL ?? 'http://127.0.0.1:18789';
+  const TOKEN = env.GATEWAY_TOKEN ?? '';
+
   try {
-    const res = await fetch(`${GATEWAY_URL}/api/sessions`, { signal: AbortSignal.timeout(3000) });
+    const res = await fetch(`${GATEWAY_URL}/tools/invoke`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${TOKEN}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ tool: 'sessions_list', args: { limit: 10 } }),
+      signal: AbortSignal.timeout(4000)
+    });
+
     const data = await res.json();
-    
-    const sessions = (data.sessions ?? []).map((s: any) => ({
-      id: s.id,
-      label: s.label ?? s.agentId ?? s.id,
+    const raw = data?.result?.details ?? {};
+    const sessions = (raw.sessions ?? []).map((s: any) => ({
+      id: s.sessionId,
+      label: s.displayName ?? s.key,
       kind: s.kind,
-      lastMessage: s.lastMessage?.text?.slice(0, 100),
-      updatedAt: s.updatedAt ?? s.lastMessage?.createdAt
+      channel: s.channel,
+      model: s.model,
+      updatedAt: s.updatedAt ? new Date(s.updatedAt).toISOString() : null
     }));
 
     return json({ ok: true, sessions });
-  } catch {
-    return json({ ok: false, sessions: [] });
+  } catch (e) {
+    return json({ ok: false, sessions: [], error: String(e) });
   }
 }

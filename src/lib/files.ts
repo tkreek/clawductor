@@ -1,4 +1,4 @@
-export const WORKSPACE = '/home/tkreek/.openclaw/workspace';
+export const WORKSPACE = process.env.WORKSPACE_DIR ?? '/home/tkreek/.openclaw/workspace';
 
 export const FILES: { name: string; label: string; description: string }[] = [
   { name: 'SOUL.md',      label: '🪶 Soul',      description: 'Personality & core identity' },

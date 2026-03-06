@@ -6,7 +6,7 @@
 <div class="login-wrap">
   <div class="login-card">
     <div class="login-header">
-      <span class="login-icon">🪶</span>
+      <img src="/logo.png" alt="Clawductor" class="auth-logo" />
       <h1 class="login-title">Clawductor</h1>
       <p class="login-subtitle">Enter your password to continue.</p>
     </div>
@@ -50,7 +50,7 @@
     margin-bottom: 2rem;
   }
 
-  .login-icon { font-size: 2rem; }
+  .auth-logo { width: 64px; height: 64px; object-fit: contain; }
 
   .login-title {
     font-family: 'Space Grotesk', sans-serif;

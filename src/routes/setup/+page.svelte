@@ -8,7 +8,7 @@
 <div class="setup-wrap">
   <div class="setup-card">
     <div class="setup-header">
-      <span class="setup-icon">🪶</span>
+      <img src="/logo.png" alt="Clawductor" class="auth-logo" />
       <h1 class="setup-title">Clawductor Setup</h1>
       <p class="setup-subtitle">Configure your OpenClaw mission control.</p>
     </div>
@@ -100,7 +100,7 @@
     text-align: center;
   }
 
-  .setup-icon { font-size: 2rem; }
+  .auth-logo { width: 64px; height: 64px; object-fit: contain; }
 
   .setup-title {
     font-family: 'Space Grotesk', sans-serif;

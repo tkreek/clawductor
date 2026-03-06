@@ -7,7 +7,7 @@
 <div class="site-wrapper">
   <header class="site-header">
     <div class="header-inner">
-      <span class="header-icon">🪶</span>
+      <img src="/logo.png" alt="Clawductor" class="header-logo" />
       <h1 class="site-title">Clawductor</h1>
       <nav class="site-nav">
         <a
@@ -59,9 +59,10 @@
     padding: 1.25rem 0;
   }
 
-  .header-icon {
-    font-size: 1.5rem;
-    line-height: 1;
+  .header-logo {
+    width: 32px;
+    height: 32px;
+    object-fit: contain;
   }
 
   .site-title {

@@ -235,9 +235,12 @@
             on:click={() => selectedTask = task}
             class="task-card task-card-{task.status}"
           >
-            {#if task.agent}
-              <div class="task-agent">{task.agent.icon} {task.agent.name}</div>
-            {/if}
+            <div class="task-card-header">
+              <span class="task-icon">{task.agent?.icon ?? '🪶'}</span>
+              {#if task.agent}
+                <span class="task-agent-name">{task.agent.name}</span>
+              {/if}
+            </div>
             <p class="task-title">{task.title}</p>
             <div class="task-meta">
               <span class="task-time">{elapsed(task.created_at)}</span>
@@ -591,18 +594,26 @@
   .task-card-done    { background: color-mix(in srgb, var(--green) 10%, #fff); }
   .task-card-failed  { background: color-mix(in srgb, var(--red) 10%, #fff); }
 
-  .task-agent {
+  .task-card-header {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-bottom: 0.4rem;
+  }
+
+  .task-icon {
+    font-size: 1.2rem;
+    line-height: 1;
+    flex-shrink: 0;
+  }
+
+  .task-agent-name {
     font-family: 'Space Mono', monospace;
     font-size: 0.6rem;
     font-weight: 700;
     letter-spacing: 0.06em;
     color: #666;
     text-transform: uppercase;
-    margin-bottom: 0.35rem;
-    padding: 0.1rem 0.4rem;
-    background: #f0f0e8;
-    border: 1px solid #ccc;
-    display: inline-block;
   }
 
   .task-title {

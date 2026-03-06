@@ -5,7 +5,7 @@ import { randomUUID } from 'crypto';
 
 const GATEWAY_URL = () => getGatewayUrl();
 const TOKEN = () => getGatewayToken();
-const OUTPUT_DIR = () => env.OUTPUT_DIR ?? '/home/tkreek/development/task-output';
+const OUTPUT_DIR = () => process.env.OUTPUT_DIR ?? '/home/tkreek/development/task-output';
 
 async function gatewayInvoke(tool: string, args: Record<string, unknown>) {
   const res = await fetch(`${GATEWAY_URL()}/tools/invoke`, {

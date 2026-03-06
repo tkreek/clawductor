@@ -1,10 +1,10 @@
 import { json } from '@sveltejs/kit';
 import { tasksDb } from '$lib/db';
-import { env } from '$env/dynamic/private';
+import { getGatewayUrl, getGatewayToken } from '$lib/config.js';
 import { existsSync, readFileSync } from 'fs';
 
-const GATEWAY_URL = () => env.GATEWAY_URL ?? 'http://127.0.0.1:18789';
-const TOKEN = () => env.GATEWAY_TOKEN ?? '';
+const GATEWAY_URL = () => getGatewayUrl();
+const TOKEN = () => getGatewayToken();
 
 async function gatewayInvoke(tool: string, args: Record<string, unknown>) {
   const res = await fetch(`${GATEWAY_URL()}/tools/invoke`, {
@@ -14,6 +14,17 @@ async function gatewayInvoke(tool: string, args: Record<string, unknown>) {
     signal: AbortSignal.timeout(10000)
   });
   return res.json();
+}
+
+function extractSkillMeta(output: string): { skill_used?: string; skill_reason?: string } {
+  const skillMatch = output.match(/(^|\n)SKILL_SELECTED:\s*(.+)/i);
+  const reasonMatch = output.match(/(^|\n)SKILL_REASON:\s*(.+)/i);
+  const skill_used = skillMatch?.[2]?.trim();
+  const skill_reason = reasonMatch?.[2]?.trim();
+  const out: { skill_used?: string; skill_reason?: string } = {};
+  if (skill_used) out.skill_used = skill_used;
+  if (skill_reason) out.skill_reason = skill_reason;
+  return out;
 }
 
 export async function GET({ params }) {
@@ -32,7 +43,8 @@ export async function GET({ params }) {
   // File-based completion check
   if (task.status === 'running' && task.output_path && existsSync(task.output_path)) {
     const output = readFileSync(task.output_path, 'utf-8');
-    task = tasksDb.update(task.id, { status: 'done', output });
+    const meta = extractSkillMeta(output);
+    task = tasksDb.update(task.id, { status: 'done', output, ...meta });
     return json({ task });
   }
 
@@ -70,7 +82,8 @@ export async function GET({ params }) {
           }
         }
 
-        task = tasksDb.update(task.id, { status: 'done', output });
+        const meta = extractSkillMeta(output);
+        task = tasksDb.update(task.id, { status: 'done', output, ...meta });
       } else if (match?.status === 'failed') {
         task = tasksDb.update(task.id, { status: 'failed', output: 'Subagent failed' });
       }
@@ -80,6 +93,16 @@ export async function GET({ params }) {
   }
 
   return json({ task });
+}
+
+export async function PATCH({ params, request }) {
+  const task = tasksDb.get(params.id);
+  if (!task) return json({ error: 'not found' }, { status: 404 });
+  const body = await request.json();
+  if ('archived' in body) {
+    tasksDb.update(params.id, { archived: body.archived ? 1 : 0 });
+  }
+  return json({ ok: true, task: tasksDb.get(params.id) });
 }
 
 export async function DELETE({ params }) {

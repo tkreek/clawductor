@@ -1,9 +1,9 @@
 import { json } from '@sveltejs/kit';
-import { env } from '$env/dynamic/private';
+import { getGatewayUrl, getGatewayToken } from '$lib/config.js';
 
 export async function GET() {
-  const GATEWAY_URL = env.GATEWAY_URL ?? 'http://127.0.0.1:18789';
-  const TOKEN = env.GATEWAY_TOKEN ?? '';
+  const GATEWAY_URL = getGatewayUrl();
+  const TOKEN = getGatewayToken();
 
   try {
     const res = await fetch(`${GATEWAY_URL}/tools/invoke`, {
@@ -12,7 +12,7 @@ export async function GET() {
         'Authorization': `Bearer ${TOKEN}`,
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ tool: 'sessions_list', args: { limit: 10 } }),
+      body: JSON.stringify({ tool: 'sessions_list', args: { limit: 20 } }),
       signal: AbortSignal.timeout(4000)
     });
 
@@ -27,8 +27,18 @@ export async function GET() {
       updatedAt: s.updatedAt ? new Date(s.updatedAt).toISOString() : null
     }));
 
-    return json({ ok: true, sessions });
+    // Find the main session to extract token usage
+    const mainSession = (raw.sessions ?? []).find((s: any) => s.key === 'agent:main:main');
+    const usage = mainSession
+      ? {
+          totalTokens: mainSession.totalTokens ?? null,
+          contextTokens: mainSession.contextTokens ?? null,
+          model: mainSession.model ?? null
+        }
+      : null;
+
+    return json({ ok: true, sessions, usage });
   } catch (e) {
-    return json({ ok: false, sessions: [], error: String(e) });
+    return json({ ok: false, sessions: [], usage: null, error: String(e) });
   }
 }

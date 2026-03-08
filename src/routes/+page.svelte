@@ -227,16 +227,28 @@
 
 <!-- Dispatch Bar (only in active view) -->
 {#if !showArchived}
-<div class="dispatch-section">
-  <div class="dispatch-bar">
-    <textarea
-      bind:value={newTitle}
-      placeholder="New task…"
-      class="task-input"
-      rows="1"
-      on:keydown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); createTask(); } }}
-      on:input={(e) => { const el = e.currentTarget; el.style.height = 'auto'; el.style.height = el.scrollHeight + 'px'; }}
-    ></textarea>
+<div class="dispatch-card">
+  <textarea
+    bind:value={newTitle}
+    placeholder="Describe a task…"
+    class="task-input"
+    rows="2"
+    on:keydown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); createTask(); } }}
+    on:input={(e) => { const el = e.currentTarget; el.style.height = 'auto'; el.style.height = el.scrollHeight + 'px'; }}
+  ></textarea>
+  <div class="dispatch-footer">
+    <div class="agent-selector">
+      <button
+        class="agent-chip {selectedAgentId === '' ? 'agent-chip-active' : ''}"
+        on:click={() => selectedAgentId = ''}
+      >🪶 Tegid</button>
+      {#each agents as agent}
+        <button
+          class="agent-chip {selectedAgentId === agent.id ? 'agent-chip-active' : ''}"
+          on:click={() => selectedAgentId = agent.id}
+        >{agent.icon} {agent.name}</button>
+      {/each}
+    </div>
     <button
       on:click={createTask}
       disabled={creating || !newTitle.trim()}
@@ -245,21 +257,6 @@
       {creating ? 'Dispatching…' : 'Dispatch'}
     </button>
   </div>
-  {#if agents.length > 0}
-  <div class="agent-selector">
-    <span class="agent-selector-label">AGENT:</span>
-    <button
-      class="agent-chip {selectedAgentId === '' ? 'agent-chip-active' : ''}"
-      on:click={() => selectedAgentId = ''}
-    >🪶 Tegid</button>
-    {#each agents as agent}
-      <button
-        class="agent-chip {selectedAgentId === agent.id ? 'agent-chip-active' : ''}"
-        on:click={() => selectedAgentId = agent.id}
-      >{agent.icon} {agent.name}</button>
-    {/each}
-  </div>
-  {/if}
 </div>
 {/if}
 
@@ -513,48 +510,84 @@
     box-shadow: 1px 1px 0 var(--black);
   }
 
-  /* Dispatch */
-  .dispatch-section {
+  /* Dispatch card */
+  .dispatch-card {
     margin-bottom: 2rem;
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-  }
-
-  .dispatch-bar {
-    display: flex;
-    gap: 0.75rem;
-    align-items: flex-start;
+    background: #fff;
+    border: 2px solid var(--black);
+    box-shadow: var(--shadow);
   }
 
   .task-input {
-    flex: 1;
-    background: #fff;
-    border: 2px solid var(--black);
-    padding: 0.75rem 1rem;
-    font-size: 0.9rem;
+    display: block;
+    width: 100%;
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid var(--black);
+    padding: 1rem 1.25rem;
+    font-size: 1rem;
     font-family: 'Space Grotesk', sans-serif;
     color: var(--black);
     outline: none;
-    transition: box-shadow 0.1s;
     resize: none;
     overflow: hidden;
-    line-height: 1.5;
-    min-height: 46px;
-    max-height: 200px;
-    display: block;
+    line-height: 1.6;
+    min-height: 64px;
+    max-height: 240px;
+    box-sizing: border-box;
   }
 
-  .task-input::placeholder { color: #aaa; }
-  .task-input:focus { box-shadow: 0 0 0 3px var(--yellow); }
+  .task-input::placeholder { color: #bbb; }
+
+  .dispatch-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.625rem 0.875rem;
+    gap: 0.75rem;
+  }
+
+  .agent-selector {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    flex-wrap: wrap;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .agent-chip {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 0.2rem 0.625rem;
+    background: transparent;
+    border: 1.5px solid #ccc;
+    cursor: pointer;
+    color: #666;
+    transition: border-color 0.1s, color 0.1s, background 0.1s;
+    white-space: nowrap;
+  }
+
+  .agent-chip:hover {
+    border-color: var(--black);
+    color: var(--black);
+  }
+
+  .agent-chip-active {
+    background: var(--yellow);
+    border: 1.5px solid var(--black) !important;
+    color: var(--black) !important;
+    font-weight: 700;
+  }
 
   .dispatch-btn {
-    padding: 0.75rem 1.5rem;
+    padding: 0.5rem 1.25rem;
     background: var(--yellow);
     border: 2px solid var(--black);
     box-shadow: var(--shadow);
-    font-size: 0.85rem;
-    font-weight: 700;
+    font-size: 0.8rem;
+    font-weight: 800;
     font-family: 'Space Grotesk', sans-serif;
     text-transform: uppercase;
     letter-spacing: 0.06em;
@@ -562,6 +595,7 @@
     transition: transform 0.1s, box-shadow 0.1s;
     white-space: nowrap;
     color: var(--black);
+    flex-shrink: 0;
   }
 
   .dispatch-btn:hover:not(:disabled) {
@@ -569,47 +603,7 @@
     box-shadow: 2px 2px 0px var(--black);
   }
 
-  .dispatch-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-
-  /* Agent selector */
-  .agent-selector {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    flex-wrap: wrap;
-  }
-
-  .agent-selector-label {
-    font-family: 'Space Mono', monospace;
-    font-size: 0.65rem;
-    font-weight: 700;
-    letter-spacing: 0.1em;
-    color: #888;
-    white-space: nowrap;
-  }
-
-  .agent-chip {
-    font-family: 'Space Grotesk', sans-serif;
-    font-size: 0.75rem;
-    font-weight: 600;
-    padding: 0.25rem 0.75rem;
-    background: #fff;
-    border: 2px solid var(--black);
-    cursor: pointer;
-    transition: transform 0.1s, box-shadow 0.1s, background 0.1s;
-  }
-
-  .agent-chip:hover {
-    background: #f5f5f0;
-    box-shadow: 2px 2px 0 var(--black);
-    transform: translate(-1px, -1px);
-  }
-
-  .agent-chip-active {
-    background: var(--yellow);
-    box-shadow: 3px 3px 0 var(--black);
-    transform: translate(-1px, -1px);
-  }
+  .dispatch-btn:disabled { opacity: 0.35; cursor: not-allowed; }
 
   /* Kanban */
   .kanban-grid {
@@ -834,8 +828,8 @@
       gap: 0.5rem;
     }
 
-    .dispatch-bar {
-      flex-direction: column;
+    .dispatch-footer {
+      flex-wrap: wrap;
     }
 
     .dispatch-btn {

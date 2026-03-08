@@ -2,6 +2,14 @@
   import '../app.css';
   import { page } from '$app/stores';
   let { data, children }: { data: { instanceName: string; gitBranch: string }, children: any } = $props();
+
+  let menuOpen = $state(false);
+
+  // Close menu on navigation
+  $effect(() => {
+    $page.url.pathname;
+    menuOpen = false;
+  });
 </script>
 
 <div class="site-wrapper">
@@ -10,34 +18,42 @@
       <img src="/logo.png" alt="Clawductor" class="header-logo" />
       <h1 class="site-title">Clawductor</h1>
       <nav class="site-nav">
-        <a
-          href="/"
-          class="nav-link {$page.url.pathname === '/' ? 'nav-active' : ''}"
-        >Tasks</a>
-        <a
-          href="/agents"
-          class="nav-link {$page.url.pathname.startsWith('/agents') ? 'nav-active' : ''}"
-        >Agents</a>
-        <a
-          href="/files"
-          class="nav-link {$page.url.pathname.startsWith('/files') ? 'nav-active' : ''}"
-        >Files</a>
-        <a
-          href="/skills"
-          class="nav-link {$page.url.pathname.startsWith('/skills') ? 'nav-active' : ''}"
-        >Skills</a>
-        <a
-          href="/cron"
-          class="nav-link {$page.url.pathname.startsWith('/cron') ? 'nav-active' : ''}"
-        >Cron</a>
+        <a href="/"       class="nav-link {$page.url.pathname === '/' ? 'nav-active' : ''}">Tasks</a>
+        <a href="/agents" class="nav-link {$page.url.pathname.startsWith('/agents') ? 'nav-active' : ''}">Agents</a>
+        <a href="/files"  class="nav-link {$page.url.pathname.startsWith('/files') ? 'nav-active' : ''}">Files</a>
+        <a href="/skills" class="nav-link {$page.url.pathname.startsWith('/skills') ? 'nav-active' : ''}">Skills</a>
+        <a href="/cron"   class="nav-link {$page.url.pathname.startsWith('/cron') ? 'nav-active' : ''}">Cron</a>
       </nav>
       <span class="mission-label">{data.instanceName}</span>
       <a href="/login" class="logout-btn" title="Log out">⏏</a>
+      <button
+        class="hamburger"
+        aria-label="Toggle menu"
+        aria-expanded={menuOpen}
+        onclick={() => menuOpen = !menuOpen}
+      >
+        <span class="bar"></span>
+        <span class="bar"></span>
+        <span class="bar {menuOpen ? 'bar-hide' : ''}"></span>
+      </button>
     </div>
+
+    <!-- Mobile nav drawer -->
+    {#if menuOpen}
+      <nav class="mobile-nav">
+        <a href="/"       class="mobile-nav-link {$page.url.pathname === '/' ? 'mobile-nav-active' : ''}">Tasks</a>
+        <a href="/agents" class="mobile-nav-link {$page.url.pathname.startsWith('/agents') ? 'mobile-nav-active' : ''}">Agents</a>
+        <a href="/files"  class="mobile-nav-link {$page.url.pathname.startsWith('/files') ? 'mobile-nav-active' : ''}">Files</a>
+        <a href="/skills" class="mobile-nav-link {$page.url.pathname.startsWith('/skills') ? 'mobile-nav-active' : ''}">Skills</a>
+        <a href="/cron"   class="mobile-nav-link {$page.url.pathname.startsWith('/cron') ? 'mobile-nav-active' : ''}">Cron</a>
+      </nav>
+    {/if}
   </header>
+
   <main class="site-main">
     {@render children()}
   </main>
+
   {#if data.gitBranch}
     <footer class="site-footer">
       <span class="git-branch">⎇ {data.gitBranch}</span>
@@ -123,6 +139,67 @@
     letter-spacing: 0.08em;
   }
 
+  /* Hamburger — hidden on desktop */
+  .hamburger {
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    gap: 5px;
+    width: 36px;
+    height: 36px;
+    padding: 6px;
+    background: none;
+    border: 2px solid var(--black);
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+
+  .bar {
+    display: block;
+    width: 100%;
+    height: 2px;
+    background: var(--black);
+    transition: opacity 0.15s;
+  }
+
+  .bar-hide {
+    opacity: 0;
+  }
+
+  /* Mobile nav drawer */
+  .mobile-nav {
+    display: none;
+    flex-direction: column;
+    border-top: 2px solid var(--black);
+  }
+
+  .mobile-nav-link {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    text-decoration: none;
+    color: var(--black);
+    padding: 0.875rem 0.5rem;
+    border-bottom: 1px solid #e0e0d8;
+    transition: background 0.1s;
+  }
+
+  .mobile-nav-link:hover {
+    background: #f5f5ee;
+  }
+
+  .mobile-nav-active {
+    background: var(--yellow);
+    border-left: 4px solid var(--black);
+    padding-left: calc(0.5rem - 2px);
+  }
+
+  .mobile-nav-active:hover {
+    background: var(--yellow);
+  }
+
   .site-main {
     padding-top: 0.5rem;
   }
@@ -142,35 +219,29 @@
   }
 
   @media (max-width: 640px) {
-    .header-inner {
-      flex-wrap: wrap;
-      gap: 0.4rem;
-      padding: 0.75rem 0;
-    }
-
-    .site-title {
-      font-size: 1rem;
-    }
-
     .site-nav {
-      order: 10;
-      width: 100%;
-      margin-left: 0;
-      overflow-x: auto;
-      flex-wrap: nowrap;
-      gap: 0.2rem;
-      padding-bottom: 0.5rem;
-      -webkit-overflow-scrolling: touch;
-    }
-
-    .nav-link {
-      font-size: 0.72rem;
-      padding: 0.3rem 0.625rem;
-      white-space: nowrap;
+      display: none;
     }
 
     .mission-label {
       display: none;
+    }
+
+    .hamburger {
+      display: flex;
+      margin-left: auto;
+    }
+
+    .mobile-nav {
+      display: flex;
+    }
+
+    .header-inner {
+      padding: 0.875rem 0;
+    }
+
+    .site-title {
+      font-size: 1rem;
     }
   }
 </style>

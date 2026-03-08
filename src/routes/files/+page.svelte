@@ -75,6 +75,23 @@
 <svelte:window on:keydown={handleKeydown} />
 
 <div class="files-layout">
+  <!-- Mobile file picker -->
+  <div class="mobile-file-picker">
+    <select
+      class="file-select"
+      on:change={(e) => {
+        const f = files.find(x => x.name === e.currentTarget.value);
+        if (f) selectFile(f);
+      }}
+      value={selected?.name ?? ''}
+    >
+      <option value="" disabled>Select a file…</option>
+      {#each files as f}
+        <option value={f.name}>{f.label}</option>
+      {/each}
+    </select>
+  </div>
+
   <!-- Sidebar -->
   <div class="sidebar">
     <div class="sidebar-label">FILES</div>
@@ -158,6 +175,29 @@
     overflow: hidden;
   }
 
+  /* Mobile file picker — hidden on desktop */
+  .mobile-file-picker {
+    display: none;
+  }
+
+  .file-select {
+    width: 100%;
+    background: #fff;
+    border: 2px solid var(--black);
+    box-shadow: var(--shadow);
+    padding: 0.75rem 1rem;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--black);
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23000' stroke-width='2' fill='none' stroke-linecap='square'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 1rem center;
+    cursor: pointer;
+  }
+
   @media (max-width: 640px) {
     .files-layout {
       flex-direction: column;
@@ -166,34 +206,11 @@
     }
 
     .sidebar {
-      width: 100%;
-      max-height: 220px;
-      overflow-y: auto;
-      flex-direction: row;
-      flex-wrap: nowrap;
-      overflow-x: auto;
-      -webkit-overflow-scrolling: touch;
-    }
-
-    .sidebar-label {
       display: none;
     }
 
-    .file-btn {
-      flex-shrink: 0;
-      min-width: 130px;
-      border-top: none;
-      border-right: 2px solid var(--black);
-      border-bottom: none;
-    }
-
-    .file-btn:last-child {
-      border-right: none;
-    }
-
-    .file-active {
-      border-bottom: 4px solid var(--black) !important;
-      border-left: none !important;
+    .mobile-file-picker {
+      display: block;
     }
 
     .editor-panel {

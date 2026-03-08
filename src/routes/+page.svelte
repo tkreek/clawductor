@@ -540,6 +540,13 @@
     gap: 1.5rem;
   }
 
+  @media (max-width: 540px) {
+    .kanban-grid {
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+  }
+
   .kanban-col { display: flex; flex-direction: column; gap: 0.75rem; }
 
   .col-header {
@@ -729,6 +736,46 @@
     overflow: hidden;
     display: flex;
     flex-direction: column;
+  }
+
+  @media (max-width: 640px) {
+    .page-header {
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .gateway-status {
+      flex-wrap: wrap;
+    }
+
+    .usage-label {
+      display: none;
+    }
+
+    .header-right {
+      gap: 0.5rem;
+    }
+
+    .dispatch-bar {
+      flex-direction: column;
+    }
+
+    .dispatch-btn {
+      width: 100%;
+    }
+
+    .modal {
+      max-height: 88vh;
+    }
+
+    .modal-header {
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .modal-actions {
+      flex-wrap: wrap;
+    }
   }
 
   .modal-header {

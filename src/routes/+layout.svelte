@@ -121,4 +121,37 @@
   .site-main {
     padding-top: 0.5rem;
   }
+
+  @media (max-width: 640px) {
+    .header-inner {
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      padding: 0.75rem 0;
+    }
+
+    .site-title {
+      font-size: 1rem;
+    }
+
+    .site-nav {
+      order: 10;
+      width: 100%;
+      margin-left: 0;
+      overflow-x: auto;
+      flex-wrap: nowrap;
+      gap: 0.2rem;
+      padding-bottom: 0.5rem;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .nav-link {
+      font-size: 0.72rem;
+      padding: 0.3rem 0.625rem;
+      white-space: nowrap;
+    }
+
+    .mission-label {
+      display: none;
+    }
+  }
 </style>

@@ -225,6 +225,10 @@
     .agents-grid { grid-template-columns: repeat(2, 1fr); }
   }
 
+  @media (max-width: 400px) {
+    .agents-grid { grid-template-columns: 1fr; }
+  }
+
   .agent-card {
     text-align: left;
     background: #fff;
@@ -458,5 +462,38 @@
   .create-btn:disabled {
     opacity: 0.4;
     cursor: not-allowed;
+  }
+
+  @media (max-width: 480px) {
+    .modal {
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    .modal-body {
+      padding: 1rem;
+    }
+
+    .form-row {
+      flex-direction: column;
+    }
+
+    .icon-field {
+      width: 100%;
+    }
+
+    .icon-input {
+      text-align: left;
+    }
+
+    .modal-footer {
+      flex-wrap: wrap;
+      justify-content: stretch;
+    }
+
+    .create-btn,
+    .cancel-btn {
+      flex: 1;
+    }
   }
 </style>

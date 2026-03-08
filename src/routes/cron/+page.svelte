@@ -466,6 +466,42 @@
     min-height: 500px;
   }
 
+  @media (max-width: 768px) {
+    .split-pane {
+      grid-template-columns: 1fr;
+    }
+
+    .job-list-pane {
+      max-height: 280px;
+    }
+
+    .editor-pane {
+      max-height: none;
+    }
+
+    .page-header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.75rem;
+    }
+
+    .header-actions {
+      width: 100%;
+      justify-content: flex-start;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .btn {
+      font-size: 0.7rem;
+      padding: 0.35rem 0.65rem;
+    }
+
+    .editor-inner {
+      padding: 1rem;
+    }
+  }
+
   /* Job list */
   .job-list-pane {
     border: 2px solid var(--black);

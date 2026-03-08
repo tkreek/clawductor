@@ -686,4 +686,43 @@
     color: #aaa;
     margin: 0;
   }
+
+  @media (max-width: 480px) {
+    .task-row-right {
+      gap: 0.3rem;
+    }
+
+    .task-row-time {
+      display: none;
+    }
+
+    .dispatch-row {
+      flex-direction: column;
+    }
+
+    .run-btn {
+      width: 100%;
+    }
+
+    .panel-card {
+      padding: 1rem;
+    }
+
+    .dispatch-card {
+      padding: 1rem;
+    }
+
+    .agent-big-icon {
+      font-size: 2.25rem;
+    }
+
+    .name-input {
+      font-size: 1rem;
+    }
+
+    .panel-actions {
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+  }
 </style>

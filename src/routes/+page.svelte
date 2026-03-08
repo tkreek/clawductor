@@ -1,5 +1,8 @@
 <script lang="ts">
   import { onMount, onDestroy } from 'svelte';
+  import { marked } from 'marked';
+  import DOMPurify from 'dompurify';
+  import FileViewer from '$lib/FileViewer.svelte';
 
   type Agent = { id: string; name: string; icon: string };
   type Task = {
@@ -25,6 +28,44 @@
   let selectedTask: Task | null = null;
   let showArchived = false;
   let pollInterval: ReturnType<typeof setInterval>;
+
+  // File viewer
+  let viewerFile: { taskId: string; filename: string } | null = null;
+  let taskAttachments: { name: string; ext: string; size: number }[] = [];
+
+  async function loadAttachments(taskId: string) {
+    try {
+      const res = await fetch(`/api/tasks/${taskId}/files`);
+      const data = await res.json();
+      taskAttachments = data.files ?? [];
+    } catch { taskAttachments = []; }
+  }
+
+  function renderMarkdown(text: string): string {
+    // Strip SKILL_SELECTED / SKILL_REASON lines from display
+    const cleaned = text.replace(/^(SKILL_SELECTED|SKILL_REASON):.*$/gm, '').trim();
+    const raw = marked.parse(cleaned, { breaks: true }) as string;
+    return DOMPurify.sanitize(raw);
+  }
+
+  function openAttachment(taskId: string, filename: string) {
+    viewerFile = { taskId, filename };
+  }
+
+  function fileIcon(ext: string): string {
+    const map: Record<string, string> = {
+      md: '📄', html: '🌐', htm: '🌐',
+      png: '🖼', jpg: '🖼', jpeg: '🖼', gif: '🖼', svg: '🖼',
+      csv: '📊', json: '{ }'
+    };
+    return map[ext] ?? '📎';
+  }
+
+  function formatBytes(b: number): string {
+    if (b < 1024) return `${b}B`;
+    if (b < 1024 * 1024) return `${(b / 1024).toFixed(1)}KB`;
+    return `${(b / (1024 * 1024)).toFixed(1)}MB`;
+  }
 
   const columns: { key: Task['status']; label: string; accentColor: string }[] = [
     { key: 'pending', label: 'Pending',  accentColor: '#aaa' },
@@ -232,7 +273,7 @@
       <div class="task-list">
         {#each tasksFor(col.key) as task (task.id)}
           <button
-            on:click={() => selectedTask = task}
+            on:click={() => { selectedTask = task; taskAttachments = []; if (task.status === 'done') loadAttachments(task.id); }}
             class="task-card task-card-{task.status}"
           >
             <div class="task-card-header">
@@ -322,7 +363,26 @@
         {#if selectedTask.status === 'running'}
           <p class="running-msg">Working on this…</p>
         {:else if selectedTask.output}
-          <pre class="output-pre">{selectedTask.output}</pre>
+          <div class="output-markdown markdown-body">
+            {@html renderMarkdown(selectedTask.output)}
+          </div>
+          {#if taskAttachments.length > 0}
+            <div class="attachments">
+              <div class="attachments-label">ATTACHMENTS</div>
+              <div class="attachments-list">
+                {#each taskAttachments as f}
+                  <button
+                    class="attachment-chip"
+                    on:click={() => openAttachment(selectedTask!.id, f.name)}
+                  >
+                    <span class="attachment-icon">{fileIcon(f.ext.replace('.', ''))}</span>
+                    <span class="attachment-name">{f.name}</span>
+                    <span class="attachment-size">{formatBytes(f.size)}</span>
+                  </button>
+                {/each}
+              </div>
+            </div>
+          {/if}
         {:else if selectedTask.status === 'done'}
           <p class="empty-msg">Task completed — no output captured.</p>
         {:else}
@@ -331,6 +391,14 @@
       </div>
     </div>
   </div>
+{/if}
+
+{#if viewerFile}
+  <FileViewer
+    taskId={viewerFile.taskId}
+    filename={viewerFile.filename}
+    onClose={() => viewerFile = null}
+  />
 {/if}
 
 <style>
@@ -871,14 +939,146 @@
     animation: pulse 1s infinite;
   }
 
-  .output-pre {
+  .output-markdown {
+    font-size: 0.875rem;
+    line-height: 1.65;
+    color: var(--black);
+  }
+
+  :global(.output-markdown h1),
+  :global(.output-markdown h2),
+  :global(.output-markdown h3) {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin: 1.25rem 0 0.4rem;
+    padding-bottom: 0.25rem;
+    border-bottom: 2px solid var(--black);
+  }
+  :global(.output-markdown h1) { font-size: 1.1rem; }
+  :global(.output-markdown h2) { font-size: 0.95rem; }
+  :global(.output-markdown h3) { font-size: 0.85rem; }
+
+  :global(.output-markdown p)  { margin: 0.6rem 0; }
+  :global(.output-markdown ul),
+  :global(.output-markdown ol) { padding-left: 1.4rem; margin: 0.6rem 0; }
+  :global(.output-markdown li) { margin: 0.25rem 0; }
+
+  :global(.output-markdown code) {
     font-family: 'Space Mono', monospace;
     font-size: 0.75rem;
-    color: var(--black);
-    white-space: pre-wrap;
-    line-height: 1.6;
-    margin: 0;
+    background: #f0efe8;
+    border: 1px solid #ddd;
+    padding: 0.1rem 0.3rem;
   }
+
+  :global(.output-markdown pre) {
+    background: #1a1a1a;
+    border: 2px solid var(--black);
+    padding: 0.875rem 1rem;
+    overflow-x: auto;
+    margin: 0.75rem 0;
+  }
+
+  :global(.output-markdown pre code) {
+    background: none;
+    border: none;
+    color: #e0e0d8;
+    padding: 0;
+  }
+
+  :global(.output-markdown blockquote) {
+    border-left: 4px solid var(--yellow);
+    margin: 0.75rem 0;
+    padding: 0.4rem 0.875rem;
+    background: #fffce8;
+  }
+
+  :global(.output-markdown table) {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 0.75rem 0;
+    font-size: 0.82rem;
+  }
+
+  :global(.output-markdown th) {
+    background: var(--black);
+    color: #FFFDF5;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 0.4rem 0.625rem;
+    text-align: left;
+  }
+
+  :global(.output-markdown td) {
+    border: 1px solid #ddd;
+    padding: 0.35rem 0.625rem;
+  }
+
+  :global(.output-markdown tr:nth-child(even) td) { background: #f8f8f0; }
+
+  :global(.output-markdown a) {
+    color: var(--blue);
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  :global(.output-markdown hr) {
+    border: none;
+    border-top: 2px solid var(--black);
+    margin: 1.25rem 0;
+  }
+
+  /* Attachments */
+  .attachments {
+    border-top: 2px solid var(--black);
+    margin-top: 1.25rem;
+    padding-top: 1rem;
+  }
+
+  .attachments-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.6rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    color: #888;
+    margin-bottom: 0.625rem;
+  }
+
+  .attachments-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .attachment-chip {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.4rem 0.75rem;
+    background: #fff;
+    border: 2px solid var(--black);
+    box-shadow: 2px 2px 0 var(--black);
+    cursor: pointer;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--black);
+    transition: transform 0.1s, box-shadow 0.1s;
+  }
+
+  .attachment-chip:hover {
+    transform: translate(1px, 1px);
+    box-shadow: 1px 1px 0 var(--black);
+    background: #f5f5ee;
+  }
+
+  .attachment-icon { font-size: 0.9rem; }
+  .attachment-name { max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .attachment-size { font-family: 'Space Mono', monospace; font-size: 0.6rem; color: #888; }
 
   .empty-msg {
     font-size: 0.875rem;

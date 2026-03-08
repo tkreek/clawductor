@@ -229,12 +229,14 @@
 {#if !showArchived}
 <div class="dispatch-section">
   <div class="dispatch-bar">
-    <input
+    <textarea
       bind:value={newTitle}
       placeholder="New task…"
       class="task-input"
-      on:keydown={(e) => e.key === 'Enter' && createTask()}
-    />
+      rows="1"
+      on:keydown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); createTask(); } }}
+      on:input={(e) => { const el = e.currentTarget; el.style.height = 'auto'; el.style.height = el.scrollHeight + 'px'; }}
+    ></textarea>
     <button
       on:click={createTask}
       disabled={creating || !newTitle.trim()}
@@ -522,6 +524,7 @@
   .dispatch-bar {
     display: flex;
     gap: 0.75rem;
+    align-items: flex-start;
   }
 
   .task-input {
@@ -534,6 +537,12 @@
     color: var(--black);
     outline: none;
     transition: box-shadow 0.1s;
+    resize: none;
+    overflow: hidden;
+    line-height: 1.5;
+    min-height: 46px;
+    max-height: 200px;
+    display: block;
   }
 
   .task-input::placeholder { color: #aaa; }

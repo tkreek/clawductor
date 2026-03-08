@@ -363,7 +363,8 @@
         {#if selectedTask.status === 'running'}
           <p class="running-msg">Working on this…</p>
         {:else if selectedTask.output}
-          <div class="output-markdown markdown-body">
+          <!-- svelte-ignore a11y-click-events-have-key-events a11y-no-static-element-interactions -->
+          <div class="output-markdown markdown-body" on:click={(e) => { const a = (e.target as HTMLElement).closest("a"); if (!a) return; const h = a.getAttribute("href"); if (!h || h.startsWith("http") || h.startsWith("#")) return; e.preventDefault(); openAttachment(selectedTask!.id, h); }}>
             {@html renderMarkdown(selectedTask.output)}
           </div>
           {#if taskAttachments.length > 0}

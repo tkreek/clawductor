@@ -1,7 +1,7 @@
 <script lang="ts">
   import '../app.css';
   import { page } from '$app/stores';
-  let { data, children }: { data: { instanceName: string }, children: any } = $props();
+  let { data, children }: { data: { instanceName: string; gitBranch: string }, children: any } = $props();
 </script>
 
 <div class="site-wrapper">
@@ -38,6 +38,11 @@
   <main class="site-main">
     {@render children()}
   </main>
+  {#if data.gitBranch}
+    <footer class="site-footer">
+      <span class="git-branch">⎇ {data.gitBranch}</span>
+    </footer>
+  {/if}
 </div>
 
 <style>
@@ -120,6 +125,20 @@
 
   .site-main {
     padding-top: 0.5rem;
+  }
+
+  .site-footer {
+    margin-top: 3rem;
+    padding: 0.75rem 0;
+    border-top: 1px solid #e0e0d8;
+    text-align: right;
+  }
+
+  .git-branch {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.6rem;
+    color: #bbb;
+    letter-spacing: 0.06em;
   }
 
   @media (max-width: 640px) {

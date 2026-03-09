@@ -40,13 +40,22 @@ async function listSkillsFrom(baseDir: string, source: SkillInfo['source']): Pro
 }
 
 export async function GET() {
-  const coreBase = '/home/tkreek/.npm-global/lib/node_modules/openclaw/skills';
-  const workspaceBase = '/home/tkreek/.openclaw/workspace/skills';
+  const coreCandidates = [
+    '/home/tkreek/.npm-global/lib/node_modules/openclaw/skills',
+    '/usr/local/lib/node_modules/openclaw/skills'
+  ];
+  const workspaceCandidates = [
+    '/workspace/skills',
+    '/home/tkreek/.openclaw/workspace/skills'
+  ];
 
-  const [core, workspace] = await Promise.all([
-    listSkillsFrom(coreBase, 'openclaw-core'),
-    listSkillsFrom(workspaceBase, 'workspace')
+  const [coreLists, workspaceLists] = await Promise.all([
+    Promise.all(coreCandidates.map((p) => listSkillsFrom(p, 'openclaw-core'))),
+    Promise.all(workspaceCandidates.map((p) => listSkillsFrom(p, 'workspace')))
   ]);
+
+  const core = coreLists.flat();
+  const workspace = workspaceLists.flat();
 
   const skills = [...core, ...workspace].sort((a, b) => a.name.localeCompare(b.name));
   return json({ skills, counts: { total: skills.length, core: core.length, workspace: workspace.length } });

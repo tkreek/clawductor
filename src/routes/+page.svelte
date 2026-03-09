@@ -20,6 +20,7 @@
 
   let gatewayStatus: 'checking' | 'online' | 'offline' = 'checking';
   let usage: { totalTokens: number | null; contextTokens: number | null; model: string | null } | null = null;
+  let runtimeSessions: { id: string; label: string; kind: string; channel: string | null; model: string | null; updatedAt: string | null }[] = [];
   let tasks: Task[] = [];
   let agents: Agent[] = [];
   let newTitle = '';
@@ -94,13 +95,80 @@
     return Math.min(100, Math.round((total / context) * 100));
   }
 
+  function formatDurationSince(ts: number) {
+    const s = Math.floor((Date.now() - ts) / 1000);
+    if (s < 60) return `${s}s`;
+    if (s < 3600) return `${Math.floor(s / 60)}m`;
+    return `${Math.floor(s / 3600)}h ${Math.floor((s % 3600) / 60)}m`;
+  }
+
+  function formatAbsolute(ts: number) {
+    return new Date(ts).toLocaleString();
+  }
+
+  function taskTimeline(task: Task) {
+    const items = [
+      {
+        id: `${task.id}-created`,
+        icon: '🆕',
+        title: 'Task created',
+        meta: formatAbsolute(task.created_at)
+      },
+      task.agent ? {
+        id: `${task.id}-agent`,
+        icon: '🪶',
+        title: `Assigned to ${task.agent.icon} ${task.agent.name}`,
+        meta: task.created_at === task.updated_at ? 'at creation' : 'during run'
+      } : null,
+      task.session_key ? {
+        id: `${task.id}-session`,
+        icon: '🔌',
+        title: 'Session linked',
+        meta: task.session_key
+      } : null,
+      task.run_id ? {
+        id: `${task.id}-run`,
+        icon: '▶️',
+        title: 'Run started',
+        meta: task.run_id
+      } : null,
+      task.status === 'running' ? {
+        id: `${task.id}-running`,
+        icon: '⚙️',
+        title: 'Currently running',
+        meta: `Started ${formatDurationSince(task.updated_at)} ago`
+      } : null,
+      task.status === 'done' ? {
+        id: `${task.id}-done`,
+        icon: '✅',
+        title: 'Task completed',
+        meta: formatAbsolute(task.updated_at)
+      } : null,
+      task.status === 'failed' ? {
+        id: `${task.id}-failed`,
+        icon: '❌',
+        title: 'Task failed',
+        meta: formatAbsolute(task.updated_at)
+      } : null,
+      taskAttachments.length > 0 ? {
+        id: `${task.id}-files`,
+        icon: '📎',
+        title: `${taskAttachments.length} attachment${taskAttachments.length === 1 ? '' : 's'} captured`,
+        meta: taskAttachments.map((f) => f.name).slice(0, 3).join(', ')
+      } : null
+    ].filter(Boolean);
+
+    return items as { id: string; icon: string; title: string; meta: string }[];
+  }
+
   async function checkStatus() {
     try {
       const res = await fetch('/api/status');
       const data = await res.json();
       gatewayStatus = data.ok ? 'online' : 'offline';
       usage = data.usage ?? null;
-    } catch { gatewayStatus = 'offline'; usage = null; }
+      runtimeSessions = data.sessions ?? [];
+    } catch { gatewayStatus = 'offline'; usage = null; runtimeSessions = []; }
   }
 
   async function loadTasks() {
@@ -190,44 +258,58 @@
   onDestroy(() => clearInterval(pollInterval));
 </script>
 
-<!-- Page Header -->
-<div class="page-header">
-  <div class="gateway-status">
-    <span
-      class="status-dot"
-      class:status-online={gatewayStatus === 'online'}
-      class:status-offline={gatewayStatus === 'offline'}
-      class:status-checking={gatewayStatus === 'checking'}
-    ></span>
-    <span class="status-label">{gatewayStatus.toUpperCase()}</span>
-    {#if usage && usage.totalTokens !== null && usage.contextTokens !== null}
-      <span class="usage-divider">|</span>
-      <div class="usage-info" title="{usage.totalTokens.toLocaleString()} / {usage.contextTokens.toLocaleString()} tokens used ({usagePct(usage.totalTokens, usage.contextTokens)}%)">
-        <div class="usage-bar-wrap">
-          <div
-            class="usage-bar-fill"
-            class:usage-bar-warn={usagePct(usage.totalTokens, usage.contextTokens) >= 70}
-            class:usage-bar-danger={usagePct(usage.totalTokens, usage.contextTokens) >= 90}
-            style="width: {usagePct(usage.totalTokens, usage.contextTokens)}%"
-          ></div>
-        </div>
-        <span class="usage-label">
-          {formatTokens(usage.contextTokens - usage.totalTokens)} left
-        </span>
+<section class="home-overview">
+    <div class="runtime-strip">
+      <div class="runtime-pill runtime-pill-status">
+        <span
+          class="status-dot"
+          class:status-online={gatewayStatus === 'online'}
+          class:status-offline={gatewayStatus === 'offline'}
+          class:status-checking={gatewayStatus === 'checking'}
+        ></span>
+        <span class="runtime-pill-label">Gateway</span>
+        <span class="runtime-pill-value">{gatewayStatus.toUpperCase()}</span>
       </div>
-    {/if}
-  </div>
-  <div class="header-right">
-    <span class="task-count">{tasks.length} {showArchived ? 'ARCHIVED' : 'ACTIVE'}</span>
-    <button class="archive-toggle" on:click={toggleView}>
-      {showArchived ? '← ACTIVE' : 'ARCHIVE →'}
-    </button>
-  </div>
-</div>
+      <div class="runtime-pill">
+        <span class="runtime-pill-label">Runs</span>
+        <span class="runtime-pill-value">{tasks.filter(t => t.status === 'running').length}</span>
+      </div>
+      <div class="runtime-pill">
+        <span class="runtime-pill-label">Sessions</span>
+        <span class="runtime-pill-value">{runtimeSessions.length}</span>
+      </div>
+      <div class="runtime-pill runtime-pill-model">
+        <span class="runtime-pill-label">Model</span>
+        <span class="runtime-pill-value runtime-pill-text">{usage?.model ?? 'Unknown'}</span>
+      </div>
+      {#if usage && usage.totalTokens !== null && usage.contextTokens !== null}
+        <div class="runtime-pill runtime-pill-usage" title="{usage.totalTokens.toLocaleString()} / {usage.contextTokens.toLocaleString()} tokens used ({usagePct(usage.totalTokens, usage.contextTokens)}%)">
+          <span class="runtime-pill-label">Context</span>
+          <div class="usage-info">
+            <div class="usage-bar-wrap">
+              <div
+                class="usage-bar-fill"
+                class:usage-bar-warn={usagePct(usage.totalTokens, usage.contextTokens) >= 70}
+                class:usage-bar-danger={usagePct(usage.totalTokens, usage.contextTokens) >= 90}
+                style="width: {usagePct(usage.totalTokens, usage.contextTokens)}%"
+              ></div>
+            </div>
+            <span class="usage-label">{formatTokens(usage.contextTokens - usage.totalTokens)} left</span>
+          </div>
+        </div>
+      {/if}
+    </div>
+</section>
 
 <!-- Dispatch Bar (only in active view) -->
 {#if !showArchived}
 <div class="dispatch-card">
+  <div class="dispatch-head">
+    <div>
+      <div class="dispatch-label">NEW TASK</div>
+      <div class="dispatch-subtitle">Send focused work to Tegid or one of your specialist agents.</div>
+    </div>
+  </div>
   <textarea
     bind:value={newTitle}
     placeholder="Describe a task…"
@@ -259,6 +341,17 @@
   </div>
 </div>
 {/if}
+
+<section class="board-section">
+  <div class="board-head">
+    <div>
+      <div class="board-label">TASK BOARD</div>
+      <div class="board-subtitle">{tasks.length} {showArchived ? 'archived' : 'active'} task{tasks.length === 1 ? '' : 's'}</div>
+    </div>
+    <button class="archive-toggle" on:click={toggleView}>
+      {showArchived ? '← ACTIVE' : 'ARCHIVE →'}
+    </button>
+  </div>
 
 <!-- Kanban Board (active) or Archive List -->
 {#if !showArchived}
@@ -324,6 +417,7 @@
   {/each}
 </div>
 {/if}
+</section>
 
 <!-- Task Detail Modal -->
 {#if selectedTask}
@@ -359,6 +453,21 @@
         </div>
       </div>
       <div class="modal-body">
+        <div class="timeline-block">
+          <div class="timeline-label">EXECUTION TIMELINE</div>
+          <div class="timeline-list">
+            {#each taskTimeline(selectedTask) as item}
+              <div class="timeline-item">
+                <div class="timeline-icon">{item.icon}</div>
+                <div class="timeline-content">
+                  <div class="timeline-title">{item.title}</div>
+                  <div class="timeline-meta">{item.meta}</div>
+                </div>
+              </div>
+            {/each}
+          </div>
+        </div>
+
         {#if selectedTask.status === 'running'}
           <p class="running-msg">Working on this…</p>
         {:else if selectedTask.output}
@@ -402,11 +511,8 @@
 {/if}
 
 <style>
-  .page-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 1.5rem;
+  .home-overview {
+    margin-bottom: 1rem;
   }
 
   .header-right {
@@ -510,12 +616,101 @@
     box-shadow: 1px 1px 0 var(--black);
   }
 
+  .runtime-strip {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .runtime-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    min-height: 2.2rem;
+    padding: 0.5rem 0.75rem;
+    background: #fff;
+    border: 2px solid var(--black);
+    box-shadow: 2px 2px 0 var(--black);
+  }
+
+  .runtime-pill-model,
+  .runtime-pill-usage {
+    max-width: 100%;
+  }
+
+  .runtime-pill-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    color: #888;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .runtime-pill-value {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 800;
+    color: var(--black);
+    white-space: nowrap;
+  }
+
+  .runtime-pill-text {
+    font-size: 0.72rem;
+    max-width: 280px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
   /* Dispatch card */
   .dispatch-card {
-    margin-bottom: 2rem;
+    margin-bottom: 1.5rem;
     background: #fff;
     border: 2px solid var(--black);
     box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+
+  .dispatch-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.875rem 1.1rem;
+    border-bottom: 2px solid var(--black);
+    background: #fffbe8;
+  }
+
+  .dispatch-label,
+  .board-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    color: #888;
+    text-transform: uppercase;
+  }
+
+  .dispatch-subtitle,
+  .board-subtitle {
+    margin-top: 0.35rem;
+    font-size: 0.82rem;
+    color: #555;
+  }
+
+  .board-section {
+    background: #fff;
+    border: 2px solid var(--black);
+    box-shadow: var(--shadow);
+    padding: 1rem 1rem 1.25rem;
+  }
+
+  .board-head {
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
   }
 
   .task-input {
@@ -811,9 +1006,43 @@
   }
 
   @media (max-width: 640px) {
-    .page-header {
+    .runtime-strip {
+      gap: 0.4rem;
+      overflow-x: auto;
+      flex-wrap: nowrap;
+      -webkit-overflow-scrolling: touch;
+      margin-bottom: 0.1rem;
+    }
+
+    .runtime-pill {
+      min-width: max-content;
+      flex-shrink: 0;
+      box-shadow: none;
+      padding: 0.42rem 0.6rem;
+    }
+
+    .runtime-pill-label {
+      font-size: 0.56rem;
+    }
+
+    .runtime-pill-value {
+      font-size: 0.76rem;
+    }
+
+    .runtime-pill-text {
+      max-width: 140px;
+    }
+
+    .board-head {
       flex-wrap: wrap;
+      align-items: flex-start;
       gap: 0.5rem;
+    }
+
+    .dispatch-head,
+    .board-section {
+      padding-left: 0.85rem;
+      padding-right: 0.85rem;
     }
 
     .gateway-status {
@@ -934,6 +1163,55 @@
     padding: 1.25rem 1.5rem;
     overflow-y: auto;
     flex: 1;
+  }
+
+  .timeline-block {
+    border: 2px solid var(--black);
+    background: #fffdf7;
+    padding: 0.875rem 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .timeline-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    color: #888;
+    margin-bottom: 0.75rem;
+  }
+
+  .timeline-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+  }
+
+  .timeline-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .timeline-icon {
+    width: 1.5rem;
+    flex-shrink: 0;
+    text-align: center;
+    font-size: 1rem;
+    line-height: 1.5rem;
+  }
+
+  .timeline-title {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--black);
+  }
+
+  .timeline-meta {
+    font-size: 0.72rem;
+    color: #666;
+    margin-top: 0.15rem;
+    word-break: break-word;
   }
 
   .running-msg {

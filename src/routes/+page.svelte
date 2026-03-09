@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount, onDestroy } from 'svelte';
+  import { page } from '$app/stores';
   import { marked } from 'marked';
   import DOMPurify from 'dompurify';
   import FileViewer from '$lib/FileViewer.svelte';
@@ -307,7 +308,6 @@
   <div class="dispatch-head">
     <div>
       <div class="dispatch-label">NEW TASK</div>
-      <div class="dispatch-subtitle">Send focused work to Tegid or one of your specialist agents.</div>
     </div>
   </div>
   <textarea
@@ -323,7 +323,7 @@
       <button
         class="agent-chip {selectedAgentId === '' ? 'agent-chip-active' : ''}"
         on:click={() => selectedAgentId = ''}
-      >🪶 Tegid</button>
+      >🪶 {$page.data.instanceName ?? 'Primary Agent'}</button>
       {#each agents as agent}
         <button
           class="agent-chip {selectedAgentId === agent.id ? 'agent-chip-active' : ''}"

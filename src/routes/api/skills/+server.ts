@@ -1,6 +1,7 @@
 import { json } from '@sveltejs/kit';
 import { readdir, readFile, stat } from 'fs/promises';
 import { join } from 'path';
+import { getPaths } from '$lib/config.js';
 
 type SkillInfo = {
   name: string;
@@ -40,22 +41,11 @@ async function listSkillsFrom(baseDir: string, source: SkillInfo['source']): Pro
 }
 
 export async function GET() {
-  const coreCandidates = [
-    '/home/tkreek/.npm-global/lib/node_modules/openclaw/skills',
-    '/usr/local/lib/node_modules/openclaw/skills'
-  ];
-  const workspaceCandidates = [
-    '/workspace/skills',
-    '/home/tkreek/.openclaw/workspace/skills'
-  ];
-
-  const [coreLists, workspaceLists] = await Promise.all([
-    Promise.all(coreCandidates.map((p) => listSkillsFrom(p, 'openclaw-core'))),
-    Promise.all(workspaceCandidates.map((p) => listSkillsFrom(p, 'workspace')))
+  const { coreSkillsDir, workspaceSkillsDir } = getPaths();
+  const [core, workspace] = await Promise.all([
+    listSkillsFrom(coreSkillsDir, 'openclaw-core'),
+    listSkillsFrom(workspaceSkillsDir, 'workspace')
   ]);
-
-  const core = coreLists.flat();
-  const workspace = workspaceLists.flat();
 
   const skills = [...core, ...workspace].sort((a, b) => a.name.localeCompare(b.name));
   return json({ skills, counts: { total: skills.length, core: core.length, workspace: workspace.length } });

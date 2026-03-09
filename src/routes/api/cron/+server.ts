@@ -1,14 +1,15 @@
 import { json } from '@sveltejs/kit';
 import { readFile, writeFile } from 'fs/promises';
 import { existsSync } from 'fs';
-
-const JOBS_PATH = '/home/tkreek/.openclaw/cron/jobs.json';
-const JOBS_BAK  = '/home/tkreek/.openclaw/cron/jobs.json.bak';
+import { join } from 'path';
+import { getPaths } from '$lib/config.js';
 
 export async function GET() {
   try {
+    const { cronDir } = getPaths();
+    const JOBS_PATH = join(cronDir, 'jobs.json');
     if (!existsSync(JOBS_PATH)) {
-      return json({ version: 1, jobs: [] });
+      return json({ version: 1, jobs: [], path: JOBS_PATH });
     }
     const raw = await readFile(JOBS_PATH, 'utf-8');
     return json(JSON.parse(raw));
@@ -19,6 +20,9 @@ export async function GET() {
 
 export async function PUT({ request }) {
   try {
+    const { cronDir } = getPaths();
+    const JOBS_PATH = join(cronDir, 'jobs.json');
+    const JOBS_BAK  = join(cronDir, 'jobs.json.bak');
     const body = await request.json();
     if (typeof body !== 'object' || body === null || !Array.isArray(body.jobs)) {
       return json({ error: 'body must be an object with a jobs array' }, { status: 400 });

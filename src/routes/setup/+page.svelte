@@ -2,7 +2,7 @@
   import { enhance } from '$app/forms';
 
   let gatewayType = $state('local');
-  let { form }: { form?: { error?: string } } = $props();
+  let { form, data }: { form?: { error?: string }, data: { defaults: { workspaceDir: string; cronDir: string; coreSkillsDir: string; workspaceSkillsDir: string } } } = $props();
 </script>
 
 <div class="setup-wrap">
@@ -55,6 +55,32 @@
         <input id="gateway_token" name="gateway_token" type="password"
           placeholder="Your OpenClaw gateway token" required />
         <span class="hint">Found in your OpenClaw config.</span>
+      </div>
+
+      <hr class="divider" />
+
+      <div class="field">
+        <label for="workspace_dir">Workspace Path</label>
+        <input id="workspace_dir" name="workspace_dir" type="text" value={data.defaults.workspaceDir} required />
+        <span class="hint">Detected Ubuntu default. Used for workspace-relative features.</span>
+      </div>
+
+      <div class="field">
+        <label for="cron_dir">Cron Path</label>
+        <input id="cron_dir" name="cron_dir" type="text" value={data.defaults.cronDir} required />
+        <span class="hint">Directory containing jobs.json.</span>
+      </div>
+
+      <div class="field">
+        <label for="core_skills_dir">Core Skills Path</label>
+        <input id="core_skills_dir" name="core_skills_dir" type="text" value={data.defaults.coreSkillsDir} required />
+        <span class="hint">OpenClaw-installed skills directory.</span>
+      </div>
+
+      <div class="field">
+        <label for="workspace_skills_dir">Workspace Skills Path</label>
+        <input id="workspace_skills_dir" name="workspace_skills_dir" type="text" value={data.defaults.workspaceSkillsDir} required />
+        <span class="hint">Custom skills inside your workspace.</span>
       </div>
 
       <hr class="divider" />

@@ -1,10 +1,10 @@
 import type { Actions } from '@sveltejs/kit';
 import { fail, redirect } from '@sveltejs/kit';
-import { setupInstance, isSetupComplete } from '$lib/config.js';
+import { setupInstance, isSetupComplete, detectDefaultPaths } from '$lib/config.js';
 
 export async function load() {
   if (isSetupComplete()) throw redirect(302, '/');
-  return {};
+  return { defaults: detectDefaultPaths() };
 }
 
 export const actions: Actions = {
@@ -14,6 +14,10 @@ export const actions: Actions = {
     const gatewayType  = String(form.get('gateway_type')  ?? '');
     const customUrl    = String(form.get('custom_url')    ?? '').trim();
     const token        = String(form.get('gateway_token') ?? '').trim();
+    const workspaceDir = String(form.get('workspace_dir') ?? '').trim();
+    const cronDir      = String(form.get('cron_dir') ?? '').trim();
+    const coreSkillsDir = String(form.get('core_skills_dir') ?? '').trim();
+    const workspaceSkillsDir = String(form.get('workspace_skills_dir') ?? '').trim();
     const password     = String(form.get('password')      ?? '');
     const confirm      = String(form.get('confirm')       ?? '');
 
@@ -29,7 +33,16 @@ export const actions: Actions = {
 
     if (!gatewayUrl) return fail(400, { error: 'Gateway URL is required.' });
 
-    setupInstance({ instanceName, gatewayUrl, gatewayToken: token, password });
+    setupInstance({
+      instanceName,
+      gatewayUrl,
+      gatewayToken: token,
+      password,
+      workspaceDir,
+      cronDir,
+      coreSkillsDir,
+      workspaceSkillsDir
+    });
     throw redirect(302, '/login');
   }
 };

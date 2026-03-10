@@ -44,6 +44,12 @@ export function getGatewayToken(): string {
   return getConfig('gateway_token') ?? '';
 }
 
+export function getTaskTimeoutSeconds(): number {
+  const raw = getConfig('task_timeout_seconds');
+  const parsed = raw ? Number(raw) : NaN;
+  return Number.isFinite(parsed) && parsed >= 0 ? parsed : 120;
+}
+
 function candidateUsers(): string[] {
   const set = new Set<string>();
   const envUsers = [process.env.SUDO_USER, process.env.USER, process.env.LOGNAME].filter(Boolean) as string[];
@@ -94,6 +100,26 @@ export function getInstanceName(): string {
   return getConfig('instance_name') ?? 'Clawductor';
 }
 
+export function updateInstanceConfig(opts: {
+  instanceName: string;
+  gatewayUrl: string;
+  gatewayToken: string;
+  workspaceDir: string;
+  cronDir: string;
+  coreSkillsDir: string;
+  workspaceSkillsDir: string;
+  taskTimeoutSeconds: number;
+}): void {
+  setConfig('instance_name', opts.instanceName);
+  setConfig('gateway_url', opts.gatewayUrl);
+  setConfig('gateway_token', opts.gatewayToken);
+  setConfig('workspace_dir', opts.workspaceDir);
+  setConfig('cron_dir', opts.cronDir);
+  setConfig('core_skills_dir', opts.coreSkillsDir);
+  setConfig('workspace_skills_dir', opts.workspaceSkillsDir);
+  setConfig('task_timeout_seconds', String(opts.taskTimeoutSeconds));
+}
+
 export function getCookieSecret(): string {
   let secret = getConfig('cookie_secret');
   if (!secret) {
@@ -114,6 +140,7 @@ export function setupInstance(opts: {
   cronDir?: string;
   coreSkillsDir?: string;
   workspaceSkillsDir?: string;
+  taskTimeoutSeconds?: number;
 }): void {
   setConfig('instance_name', opts.instanceName);
   setConfig('gateway_url', opts.gatewayUrl);
@@ -124,6 +151,7 @@ export function setupInstance(opts: {
   if (opts.cronDir) setConfig('cron_dir', opts.cronDir);
   if (opts.coreSkillsDir) setConfig('core_skills_dir', opts.coreSkillsDir);
   if (opts.workspaceSkillsDir) setConfig('workspace_skills_dir', opts.workspaceSkillsDir);
+  setConfig('task_timeout_seconds', String(opts.taskTimeoutSeconds ?? 120));
   setConfig('setup_complete', '1');
 }
 

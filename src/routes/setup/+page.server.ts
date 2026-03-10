@@ -18,12 +18,17 @@ export const actions: Actions = {
     const cronDir      = String(form.get('cron_dir') ?? '').trim();
     const coreSkillsDir = String(form.get('core_skills_dir') ?? '').trim();
     const workspaceSkillsDir = String(form.get('workspace_skills_dir') ?? '').trim();
+    const timeoutRaw   = String(form.get('task_timeout_seconds') ?? '').trim();
+    const taskTimeoutSeconds = Number(timeoutRaw || '120');
     const password     = String(form.get('password')      ?? '');
     const confirm      = String(form.get('confirm')       ?? '');
 
     if (!instanceName) return fail(400, { error: 'Instance name is required.' });
     if (!token)        return fail(400, { error: 'Gateway token is required.' });
     if (!password)     return fail(400, { error: 'Password is required.' });
+    if (!Number.isFinite(taskTimeoutSeconds) || taskTimeoutSeconds < 0) {
+      return fail(400, { error: 'Bot timeout must be 0 or a positive number of seconds.' });
+    }
     if (password !== confirm) return fail(400, { error: 'Passwords do not match.' });
     if (password.length < 8)  return fail(400, { error: 'Password must be at least 8 characters.' });
 
@@ -41,7 +46,8 @@ export const actions: Actions = {
       workspaceDir,
       cronDir,
       coreSkillsDir,
-      workspaceSkillsDir
+      workspaceSkillsDir,
+      taskTimeoutSeconds
     });
     throw redirect(302, '/login');
   }

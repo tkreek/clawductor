@@ -23,6 +23,7 @@
         <a href="/files"  class="nav-link {$page.url.pathname.startsWith('/files') ? 'nav-active' : ''}">Files</a>
         <a href="/skills" class="nav-link {$page.url.pathname.startsWith('/skills') ? 'nav-active' : ''}">Skills</a>
         <a href="/cron"   class="nav-link {$page.url.pathname.startsWith('/cron') ? 'nav-active' : ''}">Cron</a>
+        <a href="/config" class="nav-link {$page.url.pathname.startsWith('/config') ? 'nav-active' : ''}">Config</a>
       </nav>
       <span class="mission-label">{data.instanceName}</span>
       <a href="/login" class="logout-btn" title="Log out">⏏</a>
@@ -46,6 +47,7 @@
         <a href="/files"  class="mobile-nav-link {$page.url.pathname.startsWith('/files') ? 'mobile-nav-active' : ''}">Files</a>
         <a href="/skills" class="mobile-nav-link {$page.url.pathname.startsWith('/skills') ? 'mobile-nav-active' : ''}">Skills</a>
         <a href="/cron"   class="mobile-nav-link {$page.url.pathname.startsWith('/cron') ? 'mobile-nav-active' : ''}">Cron</a>
+        <a href="/config" class="mobile-nav-link {$page.url.pathname.startsWith('/config') ? 'mobile-nav-active' : ''}">Config</a>
       </nav>
     {/if}
   </header>

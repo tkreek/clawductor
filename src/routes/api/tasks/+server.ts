@@ -1,6 +1,6 @@
 import { json } from '@sveltejs/kit';
 import { tasksDb, agentsDb } from '$lib/db';
-import { getGatewayUrl, getGatewayToken } from '$lib/config.js';
+import { getGatewayUrl, getGatewayToken, getTaskTimeoutSeconds } from '$lib/config.js';
 import { randomUUID } from 'crypto';
 
 const GATEWAY_URL = () => getGatewayUrl();
@@ -88,7 +88,7 @@ SKILL_REASON: <one-line-why>`;
       mode: 'run',
       runtime: 'subagent',
       label: title.slice(0, 64),
-      runTimeoutSeconds: 120
+      runTimeoutSeconds: getTaskTimeoutSeconds()
     });
 
     if (!result?.ok) {

@@ -83,6 +83,12 @@
         <span class="hint">Custom skills inside your workspace.</span>
       </div>
 
+      <div class="field">
+        <label for="task_timeout_seconds">Bot Timeout (seconds)</label>
+        <input id="task_timeout_seconds" name="task_timeout_seconds" type="number" min="0" step="1" value="120" required />
+        <span class="hint">0 means no timeout for dispatched subagent runs.</span>
+      </div>
+
       <hr class="divider" />
 
       <div class="field">

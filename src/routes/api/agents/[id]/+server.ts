@@ -1,14 +1,14 @@
 import { json } from '@sveltejs/kit';
-import { agentsDb } from '$lib/db';
+import { profilesDb, getSubagentProfilePath } from '$lib/subagent-profiles.js';
 
 export async function GET({ params }) {
-  const agent = agentsDb.get(params.id);
+  const agent = profilesDb.get(params.id);
   if (!agent) return json({ error: 'not found' }, { status: 404 });
-  return json({ agent });
+  return json({ agent, source: 'workspace-profiles', path: getSubagentProfilePath() });
 }
 
 export async function PATCH({ params, request }) {
-  const existing = agentsDb.get(params.id);
+  const existing = profilesDb.get(params.id);
   if (!existing) return json({ error: 'not found' }, { status: 404 });
 
   const body = await request.json();
@@ -18,13 +18,13 @@ export async function PATCH({ params, request }) {
     if (body[key] !== undefined) fields[key] = body[key];
   }
 
-  const agent = agentsDb.update(params.id, fields);
-  return json({ ok: true, agent });
+  const agent = profilesDb.update(params.id, fields);
+  return json({ ok: true, agent, source: 'workspace-profiles' });
 }
 
 export async function DELETE({ params }) {
-  const existing = agentsDb.get(params.id);
+  const existing = profilesDb.get(params.id);
   if (!existing) return json({ error: 'not found' }, { status: 404 });
-  agentsDb.delete(params.id);
-  return json({ ok: true });
+  profilesDb.delete(params.id);
+  return json({ ok: true, source: 'workspace-profiles' });
 }

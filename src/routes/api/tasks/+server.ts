@@ -1,5 +1,6 @@
 import { json } from '@sveltejs/kit';
-import { tasksDb, agentsDb } from '$lib/db';
+import { tasksDb } from '$lib/db';
+import { profilesDb, getSubagentProfilePath } from '$lib/subagent-profiles.js';
 import { getGatewayUrl, getGatewayToken, getTaskTimeoutSeconds } from '$lib/config.js';
 import { randomUUID } from 'crypto';
 
@@ -22,11 +23,10 @@ export async function GET({ url }) {
   const agent_id = url.searchParams.get('agent_id') ?? undefined;
   const archived = url.searchParams.get('archived') === '1';
   const tasks = archived ? tasksDb.listArchived(agent_id) : tasksDb.list(agent_id);
-  // Attach agent info
-  const agents = agentsDb.list();
-  const agentMap = Object.fromEntries(agents.map(a => [a.id, { name: a.name, icon: a.icon }]));
+  const profiles = profilesDb.list();
+  const agentMap = Object.fromEntries(profiles.map(a => [a.id, { name: a.name, icon: a.icon }]));
   const enriched = tasks.map(t => ({ ...t, agent: t.agent_id ? (agentMap[t.agent_id] ?? null) : null }));
-  return json({ tasks: enriched });
+  return json({ tasks: enriched, profilePath: getSubagentProfilePath() });
 }
 
 export async function POST({ request }) {
@@ -45,9 +45,14 @@ export async function POST({ request }) {
   let agentTask: string;
 
   if (agent_id) {
-    const agent = agentsDb.get(agent_id);
+    const agent = profilesDb.get(agent_id);
     if (agent) {
       agentTask = `You are ${agent.name}.
+
+## Shared Subagent Profile
+This profile is shared between OpenClaw and Clawductor.
+Profile store: ${getSubagentProfilePath()}
+Profile ID: ${agent.id}
 
 ## Your Identity
 ${agent.identity}

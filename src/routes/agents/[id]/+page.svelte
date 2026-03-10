@@ -132,7 +132,7 @@
 
 <!-- Back link -->
 <div class="back-row">
-  <a href="/agents" class="back-link">← All Agents</a>
+  <a href="/agents" class="back-link">← All Profiles</a>
 </div>
 
 {#if !agent}
@@ -152,7 +152,7 @@
               bind:value={editName}
               on:blur={saveAgent}
               class="name-input"
-              placeholder="Agent name"
+              placeholder="Profile name"
             />
             <p class="agent-created">Created {elapsed(agent.created_at)}</p>
           </div>
@@ -168,7 +168,7 @@
             bind:value={editIdentity}
             on:blur={saveAgent}
             rows="5"
-            placeholder="Who is this agent? Their expertise, personality, approach…"
+            placeholder="Who is this subagent? Their expertise, personality, approach…"
             class="panel-textarea"
           ></textarea>
         </div>
@@ -183,7 +183,7 @@
             bind:value={editMemory}
             on:blur={saveAgent}
             rows="4"
-            placeholder="Persistent context or notes this agent should carry…"
+            placeholder="Persistent context or notes this subagent should carry…"
             class="panel-textarea"
           ></textarea>
         </div>
@@ -198,7 +198,7 @@
             {saving ? 'Saving…' : 'Save'}
           </button>
           <button on:click={deleteAgent} class="delete-btn">
-            Delete Agent
+            Delete Profile
           </button>
         </div>
       </div>

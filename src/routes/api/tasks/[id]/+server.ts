@@ -1,6 +1,6 @@
 import { json } from '@sveltejs/kit';
 import { tasksDb } from '$lib/db';
-import { getGatewayUrl, getGatewayToken } from '$lib/config.js';
+import { getGatewayUrl, getGatewayToken, getTaskTimeoutSeconds } from '$lib/config.js';
 import { existsSync, readFileSync } from 'fs';
 
 const GATEWAY_URL = () => getGatewayUrl();
@@ -51,12 +51,13 @@ export async function GET({ params }) {
 
   // Timeout guard for stuck runs
   if (task.status === 'running' && task.run_id) {
-    const maxMs = 2 * 60 * 1000;
-    if (Date.now() - task.created_at > maxMs) {
+    const timeoutSeconds = getTaskTimeoutSeconds();
+    const maxMs = timeoutSeconds > 0 ? timeoutSeconds * 1000 : 0;
+    if (maxMs > 0 && Date.now() - task.created_at > maxMs) {
       try {
         await gatewayInvoke('subagents', { action: 'kill', target: task.run_id });
       } catch {}
-      task = tasksDb.update(task.id, { status: 'failed', output: 'Timed out after 2 minutes' });
+      task = tasksDb.update(task.id, { status: 'failed', output: `Timed out after ${timeoutSeconds} seconds` });
       return json({ task });
     }
   }

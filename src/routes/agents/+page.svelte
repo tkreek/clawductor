@@ -62,9 +62,9 @@
 
 <!-- Header -->
 <div class="agents-header">
-  <h2 class="agents-title">Agents</h2>
+  <h2 class="agents-title">Subagent Profiles</h2>
   <button on:click={openModal} class="new-agent-btn">
-    + New Agent
+    + New Profile
   </button>
 </div>
 
@@ -72,7 +72,7 @@
 {#if agents.length === 0}
   <div class="agents-empty">
     <p class="empty-icon">🤖</p>
-    <p class="empty-msg">No agents yet. Create one to get started.</p>
+    <p class="empty-msg">No subagent profiles yet. Create one to get started.</p>
   </div>
 {:else}
   <div class="agents-grid">
@@ -99,7 +99,7 @@
   <div class="modal-overlay" on:click|self={() => showModal = false}>
     <div class="modal">
       <div class="modal-header">
-        <h3 class="modal-title">New Agent</h3>
+        <h3 class="modal-title">New Subagent Profile</h3>
         <button on:click={() => showModal = false} class="close-btn">×</button>
       </div>
 
@@ -155,7 +155,7 @@
           disabled={creating || !formName.trim()}
           class="create-btn"
         >
-          {creating ? 'Creating…' : 'Create Agent'}
+          {creating ? 'Creating…' : 'Create Profile'}
         </button>
       </div>
     </div>

@@ -5,7 +5,7 @@ A web-based mission control for [OpenClaw](https://github.com/openclaw/openclaw)
 ## Features
 
 - **Kanban task board** — dispatch tasks to your OpenClaw agents, track status in real-time
-- **Agent manager** — create and configure named agents with custom identities
+- **Shared subagent profiles** — create and configure named specialists with custom identity and memory
 - **File browser** — browse task output files
 - **Skills viewer** — see installed OpenClaw skills
 - **Cron manager** — schedule recurring tasks
@@ -130,6 +130,49 @@ tailscale funnel 3000
 | `DATA_DIR` | `./data`         | Directory for SQLite database      |
 
 All other config (gateway URL, token, password) is stored in the database via the setup UI.
+
+---
+
+## Shared Subagent Profiles
+
+Clawductor now treats persistent named specialists as **shared subagent profiles**, not as a Clawductor-only agent database.
+
+By default, profiles are stored at:
+
+```text
+$WORKSPACE_DIR/clawductor/subagent-profiles.json
+```
+
+On many local installs this will be:
+
+```text
+/home/<user>/.openclaw/workspace/clawductor/subagent-profiles.json
+```
+
+Each profile contains durable fields such as:
+- `name`
+- `icon`
+- `identity`
+- `memory`
+- timestamps
+
+When you dispatch a task from Clawductor, it spawns a real OpenClaw subagent run using the selected profile's identity and memory.
+
+### Important integration note for your main assistant
+
+If you want your main OpenClaw assistant (for example Tegid, Claude, Codex, etc.) to behave consistently with Clawductor, you should explicitly teach it to check the shared profile file when the user asks to:
+
+- create a new subagent/profile/specialist
+- list available subagents/profiles
+- use a named specialist
+- update a specialist's memory, identity, or description
+
+Recommended rule of thumb:
+
+- **Persistent named specialists** = entries in `subagent-profiles.json`
+- **Running workers** = OpenClaw subagent/session spawns created from those profiles when work is dispatched
+
+Without this instruction, your assistant may still treat Clawductor profiles and native OpenClaw subagent runs as separate concepts.
 
 ---
 

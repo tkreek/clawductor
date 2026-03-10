@@ -20,7 +20,7 @@
         <h1 class="site-title">Clawductor</h1>
         <nav class="site-nav">
           <a href="/"       class="nav-link {$page.url.pathname === '/' ? 'nav-active' : ''}">Tasks</a>
-          <a href="/agents" class="nav-link {$page.url.pathname.startsWith('/agents') ? 'nav-active' : ''}">Agents</a>
+          <a href="/agents" class="nav-link {$page.url.pathname.startsWith('/agents') ? 'nav-active' : ''}">Profiles</a>
           <a href="/files"  class="nav-link {$page.url.pathname.startsWith('/files') ? 'nav-active' : ''}">Files</a>
           <a href="/skills" class="nav-link {$page.url.pathname.startsWith('/skills') ? 'nav-active' : ''}">Skills</a>
           <a href="/cron"   class="nav-link {$page.url.pathname.startsWith('/cron') ? 'nav-active' : ''}">Cron</a>
@@ -44,7 +44,7 @@
       {#if menuOpen}
         <nav class="mobile-nav">
           <a href="/"       class="mobile-nav-link {$page.url.pathname === '/' ? 'mobile-nav-active' : ''}">Tasks</a>
-          <a href="/agents" class="mobile-nav-link {$page.url.pathname.startsWith('/agents') ? 'mobile-nav-active' : ''}">Agents</a>
+          <a href="/agents" class="mobile-nav-link {$page.url.pathname.startsWith('/agents') ? 'mobile-nav-active' : ''}">Profiles</a>
           <a href="/files"  class="mobile-nav-link {$page.url.pathname.startsWith('/files') ? 'mobile-nav-active' : ''}">Files</a>
           <a href="/skills" class="mobile-nav-link {$page.url.pathname.startsWith('/skills') ? 'mobile-nav-active' : ''}">Skills</a>
           <a href="/cron"   class="mobile-nav-link {$page.url.pathname.startsWith('/cron') ? 'mobile-nav-active' : ''}">Cron</a>

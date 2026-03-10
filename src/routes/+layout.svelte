@@ -16,7 +16,7 @@
   {#if !$page.url.pathname.startsWith('/login') && !$page.url.pathname.startsWith('/setup')}
     <header class="site-header">
       <div class="header-inner">
-        <img src="/logo.png" alt="Clawductor" class="header-logo" />
+        <img src="/logo-v2.png" alt="Clawductor" class="header-logo" />
         <h1 class="site-title">Clawductor</h1>
         <nav class="site-nav">
           <a href="/"       class="nav-link {$page.url.pathname === '/' ? 'nav-active' : ''}">Tasks</a>

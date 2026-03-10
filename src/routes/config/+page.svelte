@@ -27,7 +27,7 @@
 <div class="config-wrap">
   <div class="config-card">
     <div class="config-header">
-      <img src="/logo.png" alt="Clawductor" class="config-logo" />
+      <img src="/logo-v2.png" alt="Clawductor" class="config-logo" />
       <div>
         <div class="config-label">SETTINGS</div>
         <h1 class="config-title">Clawductor Config</h1>

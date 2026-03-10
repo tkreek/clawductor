@@ -6,7 +6,7 @@
 <div class="login-wrap">
   <div class="login-card">
     <div class="login-header">
-      <img src="/logo.png" alt="Clawductor" class="auth-logo" />
+      <img src="/logo-v2.png" alt="Clawductor" class="auth-logo" />
       <h1 class="login-title">Clawductor</h1>
       <p class="login-subtitle">Enter your password to continue.</p>
     </div>

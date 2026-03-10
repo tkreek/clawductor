@@ -8,7 +8,7 @@
 <div class="setup-wrap">
   <div class="setup-card">
     <div class="setup-header">
-      <img src="/logo.png" alt="Clawductor" class="auth-logo" />
+      <img src="/logo-v2.png" alt="Clawductor" class="auth-logo" />
       <h1 class="setup-title">Clawductor Setup</h1>
       <p class="setup-subtitle">Configure your OpenClaw mission control.</p>
     </div>

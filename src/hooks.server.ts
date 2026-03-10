@@ -12,12 +12,18 @@ export const handle: Handle = async ({ event, resolve }) => {
     if (!path.startsWith('/setup')) {
       throw redirect(302, '/setup');
     }
-    return resolve(event);
+    const response = await resolve(event);
+    response.headers.set('Cache-Control', 'no-store');
+    return response;
   }
 
   // ── Auth gate ─────────────────────────────────────────────────
   const isPublic = PUBLIC_PATHS.some(p => path.startsWith(p));
-  if (isPublic) return resolve(event);
+  if (isPublic) {
+    const response = await resolve(event);
+    response.headers.set('Cache-Control', 'no-store');
+    return response;
+  }
 
   const session = event.cookies.get('session');
   const secret  = getCookieSecret();
@@ -27,11 +33,13 @@ export const handle: Handle = async ({ event, resolve }) => {
     if (path.startsWith('/api/')) {
       return new Response(JSON.stringify({ ok: false, error: 'unauthorized' }), {
         status: 401,
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }
       });
     }
     throw redirect(302, `/login?redirect=${encodeURIComponent(path)}`);
   }
 
-  return resolve(event);
+  const response = await resolve(event);
+  response.headers.set('Cache-Control', 'no-store');
+  return response;
 };

@@ -12,51 +12,53 @@
   });
 </script>
 
-<div class="site-wrapper">
-  <header class="site-header">
-    <div class="header-inner">
-      <img src="/logo.png" alt="Clawductor" class="header-logo" />
-      <h1 class="site-title">Clawductor</h1>
-      <nav class="site-nav">
-        <a href="/"       class="nav-link {$page.url.pathname === '/' ? 'nav-active' : ''}">Tasks</a>
-        <a href="/agents" class="nav-link {$page.url.pathname.startsWith('/agents') ? 'nav-active' : ''}">Agents</a>
-        <a href="/files"  class="nav-link {$page.url.pathname.startsWith('/files') ? 'nav-active' : ''}">Files</a>
-        <a href="/skills" class="nav-link {$page.url.pathname.startsWith('/skills') ? 'nav-active' : ''}">Skills</a>
-        <a href="/cron"   class="nav-link {$page.url.pathname.startsWith('/cron') ? 'nav-active' : ''}">Cron</a>
-        <a href="/config" class="nav-link {$page.url.pathname.startsWith('/config') ? 'nav-active' : ''}">Config</a>
-      </nav>
-      <span class="mission-label">{data.instanceName}</span>
-      <a href="/login" class="logout-btn" title="Log out">⏏</a>
-      <button
-        class="hamburger"
-        aria-label="Toggle menu"
-        aria-expanded={menuOpen}
-        onclick={() => menuOpen = !menuOpen}
-      >
-        <span class="bar"></span>
-        <span class="bar"></span>
-        <span class="bar {menuOpen ? 'bar-hide' : ''}"></span>
-      </button>
-    </div>
+<div class="site-wrapper" class:auth-shell={$page.url.pathname.startsWith('/login') || $page.url.pathname.startsWith('/setup')}>
+  {#if !$page.url.pathname.startsWith('/login') && !$page.url.pathname.startsWith('/setup')}
+    <header class="site-header">
+      <div class="header-inner">
+        <img src="/logo.png" alt="Clawductor" class="header-logo" />
+        <h1 class="site-title">Clawductor</h1>
+        <nav class="site-nav">
+          <a href="/"       class="nav-link {$page.url.pathname === '/' ? 'nav-active' : ''}">Tasks</a>
+          <a href="/agents" class="nav-link {$page.url.pathname.startsWith('/agents') ? 'nav-active' : ''}">Agents</a>
+          <a href="/files"  class="nav-link {$page.url.pathname.startsWith('/files') ? 'nav-active' : ''}">Files</a>
+          <a href="/skills" class="nav-link {$page.url.pathname.startsWith('/skills') ? 'nav-active' : ''}">Skills</a>
+          <a href="/cron"   class="nav-link {$page.url.pathname.startsWith('/cron') ? 'nav-active' : ''}">Cron</a>
+          <a href="/config" class="nav-link {$page.url.pathname.startsWith('/config') ? 'nav-active' : ''}">Config</a>
+        </nav>
+        <span class="mission-label">{data.instanceName}</span>
+        <a href="/login" class="logout-btn" title="Log out">⏏</a>
+        <button
+          class="hamburger"
+          aria-label="Toggle menu"
+          aria-expanded={menuOpen}
+          onclick={() => menuOpen = !menuOpen}
+        >
+          <span class="bar"></span>
+          <span class="bar"></span>
+          <span class="bar {menuOpen ? 'bar-hide' : ''}"></span>
+        </button>
+      </div>
 
-    <!-- Mobile nav drawer -->
-    {#if menuOpen}
-      <nav class="mobile-nav">
-        <a href="/"       class="mobile-nav-link {$page.url.pathname === '/' ? 'mobile-nav-active' : ''}">Tasks</a>
-        <a href="/agents" class="mobile-nav-link {$page.url.pathname.startsWith('/agents') ? 'mobile-nav-active' : ''}">Agents</a>
-        <a href="/files"  class="mobile-nav-link {$page.url.pathname.startsWith('/files') ? 'mobile-nav-active' : ''}">Files</a>
-        <a href="/skills" class="mobile-nav-link {$page.url.pathname.startsWith('/skills') ? 'mobile-nav-active' : ''}">Skills</a>
-        <a href="/cron"   class="mobile-nav-link {$page.url.pathname.startsWith('/cron') ? 'mobile-nav-active' : ''}">Cron</a>
-        <a href="/config" class="mobile-nav-link {$page.url.pathname.startsWith('/config') ? 'mobile-nav-active' : ''}">Config</a>
-      </nav>
-    {/if}
-  </header>
+      <!-- Mobile nav drawer -->
+      {#if menuOpen}
+        <nav class="mobile-nav">
+          <a href="/"       class="mobile-nav-link {$page.url.pathname === '/' ? 'mobile-nav-active' : ''}">Tasks</a>
+          <a href="/agents" class="mobile-nav-link {$page.url.pathname.startsWith('/agents') ? 'mobile-nav-active' : ''}">Agents</a>
+          <a href="/files"  class="mobile-nav-link {$page.url.pathname.startsWith('/files') ? 'mobile-nav-active' : ''}">Files</a>
+          <a href="/skills" class="mobile-nav-link {$page.url.pathname.startsWith('/skills') ? 'mobile-nav-active' : ''}">Skills</a>
+          <a href="/cron"   class="mobile-nav-link {$page.url.pathname.startsWith('/cron') ? 'mobile-nav-active' : ''}">Cron</a>
+          <a href="/config" class="mobile-nav-link {$page.url.pathname.startsWith('/config') ? 'mobile-nav-active' : ''}">Config</a>
+        </nav>
+      {/if}
+    </header>
+  {/if}
 
   <main class="site-main">
     {@render children()}
   </main>
 
-  {#if data.gitBranch}
+  {#if data.gitBranch && !$page.url.pathname.startsWith('/login') && !$page.url.pathname.startsWith('/setup')}
     <footer class="site-footer">
       <span class="git-branch">⎇ {data.gitBranch}</span>
     </footer>
@@ -68,6 +70,16 @@
     max-width: 1100px;
     margin: 0 auto;
     padding: 0 1.5rem 3rem;
+  }
+
+  .auth-shell {
+    max-width: none;
+    min-height: 100vh;
+    padding: 0;
+  }
+
+  .auth-shell .site-main {
+    padding-top: 0;
   }
 
   .site-header {

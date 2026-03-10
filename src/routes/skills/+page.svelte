@@ -19,15 +19,20 @@
     counts = data.counts ?? counts;
   });
 
-  $: filtered = skills.filter(s => {
-    const q = query.trim().toLowerCase();
-    if (!q) return true;
-    return (
-      s.name.toLowerCase().includes(q) ||
-      s.description.toLowerCase().includes(q) ||
-      s.source.toLowerCase().includes(q)
-    );
-  });
+  $: filtered = skills
+    .filter(s => {
+      const q = query.trim().toLowerCase();
+      if (!q) return true;
+      return (
+        s.name.toLowerCase().includes(q) ||
+        s.description.toLowerCase().includes(q) ||
+        s.source.toLowerCase().includes(q)
+      );
+    })
+    .sort((a, b) => {
+      if (a.source !== b.source) return a.source === 'workspace' ? -1 : 1;
+      return a.name.localeCompare(b.name);
+    });
 </script>
 
 <div class="skills-head">
